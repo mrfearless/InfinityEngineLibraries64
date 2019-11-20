@@ -1,0 +1,39 @@
+;------------------------------------------------------------------------------------------------
+; IEMOS
+;
+; http://github.com/mrfearless/InfinityEngineLibraries64
+;
+; Paste this text at the end of \Radasm\Uasm64\Uasm64ApiCall.api to add these to Radasm
+;
+;------------------------------------------------------------------------------------------------
+IEMOSOpen,lpszMosFilename,qwOpenMode
+IEMOSMem,pMOSInMemory,lpszMosFilename,qwMosFilesize,qwOpenMode
+IEMOSClose,hIEMOS
+IEMOSHeader,hIEMOS
+IEMOSPalettes,hIEMOS
+IEMOSTileLookupEntries,hIEMOS
+IEMOSTileLookupEntry,hIEMOS,nTile
+IEMOSTileDataEntries,hIEMOS
+IEMOSTileDataEntry,hIEMOS,nTile
+IEMOSBlockEntries,hIEMOS
+IEMOSBlockEntry,hIEMOS,nBlockEntry
+IEMOSTotalTiles,hIEMOS
+IEMOSTotalPalettes,hIEMOS
+IEMOSTotalBlockEntries,hIEMOS
+IEMOSImageDimensions,hIEMOS,lpqwImageWidth,lpqwImageHeight
+IEMOSColumnsRows,hIEMOS,lpqwColumns,lpqwRows
+IEMOSPixelBlockSize,hIEMOS
+IEMOSBitmap,hIEMOS
+IEMOSTileBitmap,hIEMOS,nTile,lpqwTileWidth,lpqwTileHeight,lpqwTileXCoord,lpqwTileYCoord
+IEMOSTileWidth,hIEMOS,nTile
+IEMOSTileHeight,hIEMOS,nTile
+IEMOSTileXCoord,hIEMOS,nTile
+IEMOSTileYCoord,hIEMOS,nTile
+IEMOSTileRAW,hIEMOS,nTile
+IEMOSTilePalette,hIEMOS,nTile
+IEMOSTilePaletteValue,hIEMOS,nTile,PaletteIndex
+IEMOSFileName,hIEMOS
+IEMOSFileNameOnly,hIEMOS,lpszFileNameOnly
+IEMOSFileSize,hIEMOS
+IEMOSFileCompression,hIEMOS
+IEMOSVersion,hIEMOS
