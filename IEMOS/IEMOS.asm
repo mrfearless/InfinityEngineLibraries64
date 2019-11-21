@@ -64,14 +64,6 @@ includelib user32.lib
 ;    .CODE
 ;ENDIF
 
-
-;include masm64.inc
-include zlibstat.inc
-
-;includelib masm64.lib
-includelib zlibstat128.lib
-
-
 include IEMOS.inc
 
 ; Internal functions start with MOS
@@ -81,7 +73,7 @@ include IEMOS.inc
 ;-------------------------------------------------------------------------
 ; Internal functions:
 ;-------------------------------------------------------------------------
-MOSUncompress           PROTO :QWORD, :QWORD, :QWORD
+;MOSUncompress           PROTO :QWORD, :QWORD, :QWORD
 
 MOSV1Mem                PROTO :QWORD, :QWORD, :QWORD, :QWORD
 MOSV2Mem                PROTO :QWORD, :QWORD, :QWORD, :QWORD
@@ -95,7 +87,7 @@ MOSTileDataBitmap       PROTO :QWORD, :QWORD, :QWORD, :QWORD, :QWORD
 MOSBitmapToTiles        PROTO :QWORD, :QWORD, :QWORD, :QWORD, :QWORD, :QWORD, :QWORD
 
 EXTERNDEF MOSSignature  :PROTO :QWORD
-;EXTERNDEF MOSUncompress :PROTO :QWORD, :QWORD, :QWORD
+EXTERNDEF MOSUncompress :PROTO :QWORD, :QWORD, :QWORD
 EXTERNDEF MOSJustFname  :PROTO :QWORD, :QWORD
 
 
@@ -414,12 +406,20 @@ IEMOSClose PROC FRAME USES RBX hIEMOS:QWORD
     mov rax, [rbx].MOSINFO.MOSTotalTiles
     mov TotalTiles, rax
     
-    .IF TotalTiles > 0
+    .IF TotalTiles > 0 && TileDataPtr != 0
         mov nTile, 0
         mov rax, 0
         .WHILE rax < TotalTiles
+            
+            ; Delete Bitmap Handle
             mov rbx, ptrCurrentTileData
-            .IF qwOpenMode == IEMOS_MODE_WRITE ; Write Mode
+            mov rax, [rbx].TILEDATA.TileBitmapHandle
+            .IF rax != NULL
+                Invoke DeleteObject, rax
+            .ENDIF
+            
+            .IF qwOpenMode == IEMOS_MODE_WRITE
+                mov rbx, ptrCurrentTileData
                 mov rax, [rbx].TILEDATA.TileRAW
                 .IF rax != NULL
                     Invoke GlobalFree, rax
@@ -427,24 +427,9 @@ IEMOSClose PROC FRAME USES RBX hIEMOS:QWORD
             .ENDIF
             
             mov rbx, ptrCurrentTileData
-            mov rax, [rbx].TILEDATA.TileSizeRAW
-            mov TileSizeRAW, rax
-            
-            ; Clear memory of TileBMP if we had to convert TileRAW to a DWORD aligned TileBMP
-            ; File size will be greater in TileBMP if this is so.
-            mov rax, [rbx].TILEDATA.TileSizeBMP
-            .IF rax > TileSizeRAW            
-                mov rax, [rbx].TILEDATA.TileBMP
-                .IF rax != NULL
-                    Invoke GlobalFree, rax
-                .ENDIF
-            .ENDIF
-            
-            ; Delete Bitmap Handle
-            mov rbx, ptrCurrentTileData
-            mov rax, [rbx].TILEDATA.TileBitmapHandle
+            mov rax, [rbx].TILEDATA.TileBMP
             .IF rax != NULL
-                Invoke DeleteObject, rax
+                Invoke GlobalFree, rax
             .ENDIF
             
             add ptrCurrentTileData, SIZEOF TILEDATA
@@ -1608,13 +1593,16 @@ IEMOS_ALIGN
 ;------------------------------------------------------------------------------
 ; IEMOSTileBitmap - Returns HBITMAP (of all combined tile bitmaps) or NULL.
 ;------------------------------------------------------------------------------
-IEMOSBitmap PROC FRAME hIEMOS:QWORD
+IEMOSBitmap PROC FRAME hIEMOS:QWORD, qwPreferWidth:QWORD, qwPreferHeight:QWORD
     LOCAL hdc:QWORD
     LOCAL hdcMem:QWORD
     LOCAL hdcTile:QWORD
+    LOCAL hdcResized:QWORD
     LOCAL SavedDCTile:QWORD
     LOCAL hBitmap:QWORD
     LOCAL hOldBitmap:QWORD
+    LOCAL hBitmapResized:QWORD
+    LOCAL hBitmapResizedOld:QWORD
     LOCAL hTileBitmap:QWORD
     LOCAL hTileBitmapOld:QWORD
     LOCAL qwImageWidth:QWORD
@@ -1643,7 +1631,8 @@ IEMOSBitmap PROC FRAME hIEMOS:QWORD
         ret
     .ENDIF
     
-    Invoke CreateDC, Addr szMOSDisplayDC, NULL, NULL, NULL
+    Invoke GetDC, 0
+    ;Invoke CreateDC, Addr szMOSDisplayDC, NULL, NULL, NULL
     mov hdc, rax
 
     Invoke CreateCompatibleDC, hdc
@@ -1671,21 +1660,56 @@ IEMOSBitmap PROC FRAME hIEMOS:QWORD
             mov hTileBitmapOld, rax
             Invoke BitBlt, hdcMem, dword ptr TileX, dword ptr TileY, dword ptr TileW, dword ptr TileH, hdcTile, 0, 0, SRCCOPY
             Invoke SelectObject, hdcTile, hTileBitmapOld
+            Invoke DeleteObject, hTileBitmapOld
         .ENDIF
 
         inc nTile
         mov rax, nTile
     .ENDW
     
-    .IF hOldBitmap != 0
-        Invoke SelectObject, hdcMem, hOldBitmap
+    .IF qwPreferWidth == 0 && qwPreferHeight == 0
+        .IF hOldBitmap != 0
+            Invoke SelectObject, hdcMem, hOldBitmap
+            Invoke DeleteObject, hOldBitmap
+        .ENDIF
+        Invoke RestoreDC, hdcTile, dword ptr SavedDCTile
+        Invoke DeleteDC, hdcTile
+        Invoke DeleteDC, hdcMem
+        ;Invoke DeleteDC, hdc
+        Invoke ReleaseDC, 0, hdc
+        mov rax, hBitmap
+    .ELSE
+        
+        Invoke CreateCompatibleDC, hdc
+        mov hdcResized, rax
+        
+        Invoke CreateCompatibleBitmap, hdc, dword ptr qwPreferWidth, dword ptr qwPreferHeight
+        mov hBitmapResized, rax
+        
+        Invoke SelectObject, hdcResized, hBitmapResized
+        mov hBitmapResizedOld, rax
+        ;Invoke SetStretchBltMode, hdcResized, HALFTONE
+        ;Invoke SetBrushOrgEx, hdcResized, 0, 0, 0
+        Invoke StretchBlt, hdcResized, 0, 0, dword ptr qwPreferWidth, dword ptr qwPreferHeight, hdcMem, 0, 0, dword ptr qwImageWidth, dword ptr qwImageHeight, SRCCOPY
+        
+        .IF hOldBitmap != 0
+            Invoke SelectObject, hdcMem, hOldBitmap
+            Invoke DeleteObject, hOldBitmap
+            Invoke DeleteObject, hBitmap
+        .ENDIF
+        .IF hBitmapResizedOld != 0
+            Invoke SelectObject, hdcResized, hBitmapResizedOld
+            Invoke DeleteObject, hBitmapResizedOld
+        .ENDIF
+        Invoke RestoreDC, hdcTile, dword ptr SavedDCTile
+        Invoke DeleteDC, hdcResized
+        Invoke DeleteDC, hdcTile
+        Invoke DeleteDC, hdcMem
+        ;Invoke DeleteDC, hdc
+        Invoke ReleaseDC, 0, hdc
+        mov rax, hBitmapResized
     .ENDIF
-    Invoke RestoreDC, hdcTile, dword ptr SavedDCTile
-    Invoke DeleteDC, hdcTile
-    Invoke DeleteDC, hdcMem
-    Invoke DeleteDC, hdc
     
-    mov rax, hBitmap
     ret
 IEMOSBitmap ENDP
 
@@ -2071,8 +2095,8 @@ MOSTileDataBitmap PROC FRAME USES RBX qwTileWidth:QWORD, qwTileHeight:QWORD, pTi
     lea rbx, [rax].BITMAPINFO.bmiColors
     Invoke RtlMoveMemory, rbx, pTilePalette, 1024d
     
-    Invoke CreateDC, Addr szMOSDisplayDC, NULL, NULL, NULL
-    ;Invoke GetDC, NULL
+    ;Invoke CreateDC, Addr szMOSDisplayDC, NULL, NULL, NULL
+    Invoke GetDC, 0
     mov hdc, rax
     Invoke CreateDIBitmap, hdc, Addr MOSTileBitmap, CBM_INIT, pTileBMP, Addr MOSTileBitmap, DIB_RGB_COLORS
     .IF rax == NULL
@@ -2081,8 +2105,8 @@ MOSTileDataBitmap PROC FRAME USES RBX qwTileWidth:QWORD, qwTileHeight:QWORD, pTi
         ENDIF
     .ENDIF
     mov TileBitmapHandle, rax
-    Invoke DeleteDC, hdc
-    ;Invoke ReleaseDC, NULL, hdc
+    ;Invoke DeleteDC, hdc
+    Invoke ReleaseDC, 0, hdc
     mov rax, TileBitmapHandle
     ret
 MOSTileDataBitmap ENDP
@@ -2175,50 +2199,6 @@ MOSBitmapToTiles PROC FRAME USES RBX hBitmap:QWORD, lpqwTileDataArray:QWORD, lpq
 
 MOSBitmapToTiles ENDP
 
-IEMOS_ALIGN
-;------------------------------------------------------------------------------
-; Uncompresses MOSC file to an area of memory that we allocate for the exact 
-; size of data
-;------------------------------------------------------------------------------
-MOSUncompress PROC FRAME USES RBX hMOSFile:QWORD, pMOS:QWORD, qwSize:QWORD
-    LOCAL dest:QWORD
-    LOCAL src:QWORD
-    LOCAL MOSU_Size:QWORD
-    LOCAL BytesRead:QWORD
-    LOCAL MOSFilesize:QWORD
-    LOCAL MOSC_UncompressedSize:QWORD
-    LOCAL MOSC_CompressedSize:QWORD
-    
-    Invoke GetFileSize, hMOSFile, NULL
-    mov MOSFilesize, rax
-    mov rbx, pMOS
-    xor rax, rax
-    mov eax, dword ptr [rbx].MOSC_HEADER.UncompressedLength
-    mov MOSC_UncompressedSize, rax
-    mov rax, MOSFilesize
-    sub rax, 0Ch ; take away the MOSC header 12 bytes = 0xC
-    mov MOSC_CompressedSize, rax ; set correct compressed size = length of file minus MOSC header length
-
-    Invoke GlobalAlloc, GMEM_FIXED or GMEM_ZEROINIT, MOSC_UncompressedSize
-    .IF rax != NULL
-        mov dest, rax
-        mov rax, pMOS ;MOSMemMapPtr
-        add rax, 0Ch ; add MOSC Header to Memory map to start at correct offset for uncompressing
-        mov src, rax
-        Invoke uncompress, dest, Addr MOSC_UncompressedSize, src, MOSC_CompressedSize
-        .IF rax == Z_OK ; ok
-            mov rax, MOSC_UncompressedSize
-            mov rbx, qwSize
-            mov qword ptr [rbx], rax
-        
-            mov rax, dest
-            ret
-        .ENDIF
-    .ENDIF
-    
-    mov rax, 0        
-    ret
-MOSUncompress ENDP
 
 END
 

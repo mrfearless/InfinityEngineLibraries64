@@ -58,7 +58,7 @@ IEMOSTotalBlockEntries      PROTO :QWORD                    ; hIEMOS. Returns in
 IEMOSImageDimensions        PROTO :QWORD,:QWORD,:QWORD      ; hIEMOS, lpdwImageWidth, lpdwImageHeight
 IEMOSColumnsRows            PROTO :QWORD,:QWORD,:QWORD      ; hIEMOS, lpdwColumns, lpdwRows
 IEMOSPixelBlockSize         PROTO :QWORD                    ; hIEMOS
-IEMOSBitmap                 PROTO :QWORD                    ; hIEMOS. Returns in eax HBITMAP (of all combined tiles to create the whole bitmap) or NULL.
+IEMOSBitmap                 PROTO :QWORD,:QWORD,:QWORD      ; hIEMOS. Returns in eax HBITMAP (of all combined tiles to create the whole bitmap) or NULL.
 
 ; MOS Tile Data Information:
 IEMOSTileBitmap             PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD ; hIEMOS, nTile, lpdwTileWidth, lpdwTileHeight, lpdwTileXCoord, lpdwTileYCoord. Returns in eax HBITMAP or NULL
