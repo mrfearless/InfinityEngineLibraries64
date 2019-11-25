@@ -34,52 +34,59 @@
 ;
 ;==============================================================================
 
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 ; IEMOS Prototypes
-;-----------------------------------------------------------------------------------------
-IEMOSOpen                   PROTO :QWORD,:QWORD             ; lpszMosFilename, dwOpenMode. Returns in eax a handle used in other functions: hIEMOS
-IEMOSMem                    PROTO :QWORD,:QWORD,:QWORD,:QWORD ; pMOSInMemory, lpszMosFilename, dwMosFilesize, dwOpenMode. Returns in eax a handle used in other functions: hIEMOS
-IEMOSClose                  PROTO :QWORD                    ; hIEMOS returned from IEMOSOpen.
+;------------------------------------------------------------------------------
+IEMOSOpen                   PROTO lpszMosFilename:QWORD, qwOpenMode:QWORD ; rax = handle used in other functions: hIEMOS
+IEMOSMem                    PROTO pMOSInMemory:QWORD, lpszMosFilename:QWORD, qwMosFilesize:QWORD, qwOpenMode:QWORD ; rax = handle used in other functions: hIEMOS
+IEMOSClose                  PROTO hIEMOS:QWORD
 
 ; Pointers to parts of MOS file:
-IEMOSHeader                 PROTO :QWORD                    ; hIEMOS. Returns in eax pointer to a MOSV1_HEADER structure.
-IEMOSPalettes               PROTO :QWORD                    ; hIEMOS. Returns in eax pointer to the palettes array
-IEMOSTileLookupEntries      PROTO :QWORD                    ; hIEMOS. Returns in eax pointer to TileLookup array entries
-IEMOSTileLookupEntry        PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in eax pointer to specific TileLookup entry
-IEMOSTileDataEntries        PROTO :QWORD                    ; hIEMOS. Returns in eax pointer to TILEDATA array entries
-IEMOSTileDataEntry          PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in eax pointer to specific TILEDATA entry
-IEMOSBlockEntries           PROTO :QWORD                    ; hIEMOS. Returns in eax pointer to DATABLOCK_ENTRY array entries. For MOS V2 Only
-IEMOSBlockEntry             PROTO :QWORD,:QWORD             ; hIEMOS, nBlockEntry. Returns in eax pointer to a DATABLOCK_ENTRY structure. For MOS V2 Only
+IEMOSHeader                 PROTO hIEMOS:QWORD ; rax = pointer to a MOSV1_HEADER structure.
+IEMOSPalettes               PROTO hIEMOS:QWORD ; rax = pointer to the palettes array
+IEMOSTileLookupEntries      PROTO hIEMOS:QWORD ; rax = pointer to TileLookup array entries
+IEMOSTileLookupEntry        PROTO hIEMOS:QWORD, nTile:QWORD ; rax = pointer to specific TileLookup entry
+IEMOSTileDataEntries        PROTO hIEMOS:QWORD ; rax = pointer to TILEDATA array entries
+IEMOSTileDataEntry          PROTO hIEMOS:QWORD, nTile:QWORD ; rax = pointer to specific TILEDATA entry
+IEMOSBlockEntries           PROTO hIEMOS:QWORD ; rax = pointer to DATABLOCK_ENTRY array entries. For MOS V2 Only
+IEMOSBlockEntry             PROTO hIEMOS:QWORD, nBlockEntry:QWORD ; rax = pointer to a DATABLOCK_ENTRY structure. For MOS V2 Only
 
 ; MOS Basic Information:
-IEMOSTotalTiles             PROTO :QWORD                    ; hIEMOS. Returns in eax total tiles in MOS
-IEMOSTotalPalettes          PROTO :QWORD                    ; hIEMOS. Returns in eax total palettes in MOS (same as total tiles)
-IEMOSTotalBlockEntries      PROTO :QWORD                    ; hIEMOS. Returns in eax total no of Datablock entries. For MOS V2 Only
-IEMOSImageDimensions        PROTO :QWORD,:QWORD,:QWORD      ; hIEMOS, lpdwImageWidth, lpdwImageHeight
-IEMOSColumnsRows            PROTO :QWORD,:QWORD,:QWORD      ; hIEMOS, lpdwColumns, lpdwRows
-IEMOSPixelBlockSize         PROTO :QWORD                    ; hIEMOS
-IEMOSBitmap                 PROTO :QWORD,:QWORD,:QWORD      ; hIEMOS. Returns in eax HBITMAP (of all combined tiles to create the whole bitmap) or NULL.
+IEMOSTotalTiles             PROTO hIEMOS:QWORD ; rax = total tiles in MOS
+IEMOSTotalPalettes          PROTO hIEMOS:QWORD ; rax = total palettes in MOS (same as total tiles)
+IEMOSTotalBlockEntries      PROTO hIEMOS:QWORD ; rax = total no of Datablock entries. For MOS V2 Only
+IEMOSImageDimensions        PROTO hIEMOS:QWORD, lpqwImageWidth:QWORD, lpqwImageHeight:QWORD
+IEMOSColumnsRows            PROTO hIEMOS:QWORD, lpqwColumns:QWORD, lpqwRows:QWORD
+IEMOSPixelBlockSize         PROTO hIEMOS:QWORD ; rax = pixel block size
 
 ; MOS Tile Data Information:
-IEMOSTileBitmap             PROTO :QWORD,:QWORD,:QWORD,:QWORD,:QWORD,:QWORD ; hIEMOS, nTile, lpdwTileWidth, lpdwTileHeight, lpdwTileXCoord, lpdwTileYCoord. Returns in eax HBITMAP or NULL
-IEMOSTileWidth              PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in tile width
-IEMOSTileHeight             PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in tile height
-IEMOSTileXCoord             PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in tile x coord
-IEMOSTileYCoord             PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in tile y coord
-IEMOSTileRAW                PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in pointer to RAW tile data.
-IEMOSTilePalette            PROTO :QWORD,:QWORD             ; hIEMOS, nTile. Returns in eax pointer to the tile's specific palette (256 entries of RGBQUADs)
-IEMOSTilePaletteValue       PROTO :QWORD,:QWORD,:QWORD      ; hIEMOS, nTile, PaletteIndex. eax contains RGBQUAD or -1 if not valid.
+IEMOSTileWidth              PROTO hIEMOS:QWORD, nTile:QWORD ; rax = tile width
+IEMOSTileHeight             PROTO hIEMOS:QWORD, nTile:QWORD ; rax = tile height
+IEMOSTileXCoord             PROTO hIEMOS:QWORD, nTile:QWORD ; rax = tile x coord
+IEMOSTileYCoord             PROTO hIEMOS:QWORD, nTile:QWORD ; rax = tile y coord
+IEMOSTileRAW                PROTO hIEMOS:QWORD, nTile:QWORD ; rax = pointer to RAW tile data.
+IEMOSTilePalette            PROTO hIEMOS:QWORD, nTile:QWORD ; rax = pointer to the tile's specific palette (256 entries of RGBQUADs)
+IEMOSTilePaletteValue       PROTO hIEMOS:QWORD, nTile:QWORD, PaletteIndex:QWORD ; rax = RGBQUAD or -1 if not valid.
 
 ; MOS File & Version Information:
-IEMOSFileName               PROTO :QWORD                    ; hIEMOS. Returns in eax pointer to mos full path filename
-IEMOSFileNameOnly           PROTO :QWORD,:QWORD             ; hIEMOS, lpszFileNameOnly. eax contains True or false if succesfull. strips filename of path and ext information.
-IEMOSFileSize               PROTO :QWORD                    ; hIEMOS. Returns in eax size of mos file in bytes
-IEMOSFileCompression        PROTO :QWORD                    ; hIEMOS. Returns in eax -1 = No Mos file, TRUE for MOSCV1, FALSE for MOS V1 or MOS V2 
-IEMOSVersion                PROTO :QWORD                    ; hIEMOS. Returns in eax 0 no mos, 1 = MOS V1, 2 = MOS V2, 3 = MOSC 
+IEMOSFileName               PROTO hIEMOS:QWORD ; rax = pointer to mos full path filename
+IEMOSFileNameOnly           PROTO hIEMOS:QWORD, lpszFileNameOnly:QWORD ; rax = True or false if successfull. strips filename of path and ext information.
+IEMOSFileSize               PROTO hIEMOS:QWORD ; rax = size of mos file in bytes
+IEMOSFileCompression        PROTO hIEMOS:QWORD ; rax = -1 = No Mos file, TRUE for MOSCV1, FALSE for MOS V1 or MOS V2 
+IEMOSVersion                PROTO hIEMOS:QWORD ; rax = 0 no mos, 1 = MOS V1, 2 = MOS V2, 3 = MOSC 
 
-;-----------------------------------------------------------------------------------------
+; MOS Bitmap Functions:
+IEMOSTileBitmap             PROTO hIEMOS:QWORD, nTile:QWORD, lpqwTileWidth:QWORD, lpqwTileHeight:QWORD, lpqwTileXCoord:QWORD, lpqwTileYCoord:QWORD ; rax = HBITMAP or NULL
+IEMOSBitmap                 PROTO hIEMOS:QWORD, qwPreferWidth:QWORD, qwPreferHeight:QWORD ; rax = HBITMAP (of all combined tiles to create the whole bitmap) or NULL.
+
+; MOS Compression Functions:
+IEMOSUncompressMOS          PROTO lpszMosFilenameIN:QWORD, lpszMosFilenameOUT:QWORD ; lpszMosInputFilename to uncompress, lpszMosOutputFilename (optional) to write out uncompressed mos as (null=same filename as lpszMosInputFilename)
+
+
+
+;------------------------------------------------------------------------------
 ; IEMOS Structures
-;-----------------------------------------------------------------------------------------
+;------------------------------------------------------------------------------
 IFNDEF MOSV1_HEADER
 MOSV1_HEADER            STRUCT
     Signature           DD 0    ; 0x0000 	4 (char array) 	Signature ('MOS ')
@@ -119,7 +126,7 @@ TILELOOKUP_ENTRY        ENDS
 ENDIF
 
 IFNDEF TILEDATA
-TILEDATA                STRUCT
+TILEDATA                STRUCT 8
     TileX               DQ 0
     TileY               DQ 0
     TileW               DQ 0
@@ -145,9 +152,44 @@ DATABLOCK_ENTRY         STRUCT
 DATABLOCK_ENTRY         ENDS
 ENDIF
 
+IFNDEF MOSINFO
+MOSINFO                     STRUCT 8
+    MOSOpenMode             DQ 0
+    MOSFilename             DB MAX_PATH DUP (0)
+    MOSFilesize             DQ 0
+    MOSVersion              DQ 0
+    MOSCompressed           DQ 0
+    MOSHeaderPtr            DQ 0
+    MOSHeaderSize           DQ 0
+    MOSImageWidth           DQ 0
+    MOSImageHeight          DQ 0
+    MOSBlockColumns         DQ 0 ; MOS V1
+    MOSBlockRows            DQ 0 ; MOS V1
+    MOSBlockSize            DQ 0 ; MOS V1
+    MOSTotalTiles           DQ 0 ; MOS V1
+    MOSPaletteEntriesPtr    DQ 0 ; no interal palette for MOS V2
+    MOSPaletteEntriesSize   DQ 0 ; MOS V1
+    MOSTileLookupEntriesPtr DQ 0 ; MOS V1 ; TileLookup Entries
+    MOSTileLookupEntriesSize DQ 0 ; MOS V1
+    MOSTileDataPtr          DQ 0 
+    MOSTileDataSize         DQ 0
+    MOSBlockEntriesPtr      DQ 0 ; for MOS V2
+    MOSBlockEntriesSize     DQ 0 ; for MOS V2
+    MOSMemMapPtr            DQ 0
+    MOSMemMapHandle         DQ 0
+    MOSFileHandle           DQ 0    
+MOSINFO                     ENDS
+ENDIF
 
 .CONST
-
+;------------------------------------------
+; Conditional for IEMOS Library DLL compiling
+;------------------------------------------
+IFDEF IEMOS_DLL
+    IEMOS_LIBEND TEXTEQU <>
+ELSE
+    IEMOS_LIBEND TEXTEQU <END>
+ENDIF
 IEMOS_ALIGN                 TEXTEQU <ALIGN 16>
 ; IEMOSOpen open mode:
 IEMOS_MODE_WRITE            EQU 0
@@ -158,7 +200,20 @@ MOS_VERSION_MOS_V10         EQU 1 ; MOS_V1.0
 MOS_VERSION_MOS_V20         EQU 2 ; MOS_V2.0
 MOS_VERSION_MOSCV10         EQU 3 ; MOSCV1.0 (Compressed Blocks)
 
-
+; IEMOSUncompressMOS return values
+MU_SUCCESS                  EQU 0
+MU_MOS_INVALID              EQU -1
+MU_MOS_ALREADY_UNCOMPRESSED EQU -2
+MU_MOS_FORMAT_UNSUPPORTED   EQU -3
+MU_MOS_TOO_LARGE            EQU -4
+MU_MOS_OUTPUTFILE_CREATION  EQU -5
+MU_MOS_OUTPUTFILE_MAPPING   EQU -6
+MU_MOS_OUTPUTFILE_VIEW      EQU -7
+MU_MOS_INPUTFILE_OPEN       EQU -8
+MU_MOS_INPUTFILE_MAPPING    EQU -9
+MU_MOS_INPUTFILE_VIEW       EQU -10
+MU_MOS_INPUTFILE_ZEROSIZE   EQU -11
+MU_MOS_UNCOMPRESS_ERROR     EQU -12
 
 
 

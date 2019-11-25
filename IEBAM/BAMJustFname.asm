@@ -1,6 +1,6 @@
 ;==============================================================================
 ;
-; IEMOS Library
+; IEBAM x64 Library
 ;
 ; Copyright (c) 2019 by fearless
 ;
@@ -23,16 +23,19 @@ WINVER equ 0501h
 include windows.inc
 includelib user32.lib
 
-include IEMOS.inc
+include IEBAM.inc
+
+BAMJustFname            PROTO :QWORD, :QWORD
+
 
 .CODE
 
 
-IEMOS_ALIGN
+IEBAM_ALIGN
 ;------------------------------------------------------------------------------
 ; Strip path name to just filename Without extention
 ;------------------------------------------------------------------------------
-MOSJustFname PROC FRAME USES RSI RDI FilePathName:QWORD, FileName:QWORD
+BAMJustFname PROC FRAME USES RSI RDI FilePathName:QWORD, FileName:QWORD
 	LOCAL LenFilePathName:QWORD
 	LOCAL nPosition:QWORD
 	
@@ -77,9 +80,9 @@ MOSJustFname PROC FRAME USES RSI RDI FilePathName:QWORD, FileName:QWORD
 	mov byte ptr [rdi], 0h
 	mov rax, TRUE
 	ret
-MOSJustFname ENDP
+BAMJustFname ENDP
 
 
 
-IEMOS_LIBEND
+IEBAM_LIBEND
 

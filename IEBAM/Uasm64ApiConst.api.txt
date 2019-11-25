@@ -1,0 +1,10 @@
+;------------------------------------------------------------------------------------------------
+; IEBAM x64 Additions 
+;
+; http://github.com/mrfearless/InfinityEngineLibraries64
+;
+; Paste this text at the end of \Radasm\Uasm64\Uasm64ApiConst.api to add these to Radasm
+;
+;------------------------------------------------------------------------------------------------
+2IEBAMOpen,IEBAM_MODE_WRITE,IEBAM_MODE_READONLY
+4IEBAMMem,IEBAM_MODE_WRITE,IEBAM_MODE_READONLY

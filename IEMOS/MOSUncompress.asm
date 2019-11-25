@@ -1,3 +1,12 @@
+;==============================================================================
+;
+; IEMOS Library
+;
+; Copyright (c) 2019 by fearless
+;
+; http://github.com/mrfearless/InfinityEngineLibraries64
+;
+;==============================================================================
 .686
 .MMX
 .XMM
@@ -12,19 +21,17 @@ _WIN64 EQU 1
 WINVER equ 0501h
 
 include windows.inc
-;include masm64.inc
-include zlibstat.inc
 
 includelib kernel32.lib
 includelib user32.lib
-;includelib masm64.lib
+
+include zlibstat1211.inc
 includelib zlibstat1211.lib
 
 
 include IEMOS.inc
 
 MOSUncompress PROTO :QWORD, :QWORD, :QWORD
-
 
 .CODE
 
@@ -74,5 +81,6 @@ MOSUncompress PROC FRAME USES RBX hMOSFile:QWORD, pMOS:QWORD, qwSize:QWORD
     ret
 MOSUncompress ENDP
 
-END
+
+IEMOS_LIBEND
 

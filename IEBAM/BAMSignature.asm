@@ -1,6 +1,6 @@
 ;==============================================================================
 ;
-; IEMOS Library
+; IEBAM x64 Library
 ;
 ; Copyright (c) 2019 by fearless
 ;
@@ -21,47 +21,50 @@ _WIN64 EQU 1
 WINVER equ 0501h
 
 include windows.inc
+includelib user32.lib
 
-include IEMOS.inc
+include IEBAM.inc
+
+BAMSignature            PROTO :QWORD
 
 
 .CODE
 
 
-IEMOS_ALIGN
+IEBAM_ALIGN
 ;------------------------------------------------------------------------------
-; Checks the MOS signatures to determine if they are valid and if MOS file is 
+; Checks the BAM signatures to determine if they are valid and if BAM file is 
 ; compressed
 ;------------------------------------------------------------------------------
-MOSSignature PROC FRAME USES RBX pMOS:QWORD
+BAMSignature PROC FRAME USES RBX pBAM:QWORD
     ; check signatures to determine version
-    mov rbx, pMOS
+    mov rbx, pBAM
     mov eax, [rbx]
-    .IF eax == ' SOM' ; MOS
+    .IF eax == ' MAB' ; BAM
         add rbx, 4
         mov eax, [rbx]
         .IF eax == '  1V' ; V1.0
-            mov eax, MOS_VERSION_MOS_V10
+            mov eax, BAM_VERSION_BAM_V10
         .ELSEIF eax == '  2V' ; V2.0
-            mov eax, MOS_VERSION_MOS_V20
+            mov eax, BAM_VERSION_BAM_V20
         .ELSE
-            mov eax, MOS_VERSION_INVALID
+            mov eax, BAM_VERSION_INVALID
         .ENDIF
 
-    .ELSEIF eax == 'CSOM' ; MOSC
+    .ELSEIF eax == 'CMAB' ; BAMC
         add rbx, 4
         mov eax, [rbx]
         .IF eax == '  1V' ; V1.0
-            mov eax, MOS_VERSION_MOSCV10
+            mov eax, BAM_VERSION_BAMCV10
         .ELSE
-            mov eax, MOS_VERSION_INVALID
+            mov eax, BAM_VERSION_INVALID
         .ENDIF            
     .ELSE
-        mov eax, MOS_VERSION_INVALID
+        mov eax, BAM_VERSION_INVALID
     .ENDIF
     ret
-MOSSignature ENDP
+BAMSignature ENDP
 
 
-IEMOS_LIBEND
+IEBAM_LIBEND
 
